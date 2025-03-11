@@ -80,7 +80,7 @@ questions = [
 #         st.error(f"❌ 음성 인식 서비스 오류: {e}")
 #         return ""
 
-# 음성 처리 클래스
+# 🎯 음성 인식 클래스 (비디오 OFF)
 class AudioProcessor(AudioProcessorBase):
     def __init__(self):
         self.q = queue.Queue()
@@ -125,19 +125,18 @@ audio_processor = webrtc_streamer(
     }
 )
 
-# 오디오 처리 버튼 추가
-if st.button("🎙️ 음성 입력 시작"):
-    if audio_processor and audio_processor.state.playing:
-        audio_data = b''.join([audio.tobytes() for audio in list(audio_processor.audio_processor.q.queue)])
-        if audio_data:
-            recognized_text = recognize_speech(audio_data)
-            st.text_input("음성 인식 결과", value=recognized_text)
-        else:
-            st.warning("음성 데이터가 비어 있습니다. 다시 시도해주세요.")
+# 🔄 음성 데이터 자동 인식 (START 버튼 제거)
+if audio_processor and audio_processor.state.playing:
+    audio_data = b''.join([audio.tobytes() for audio in list(audio_processor.audio_processor.q.queue)])
+    if audio_data:
+        recognized_text = recognize_speech(audio_data)
+        st.text_input("음성 인식 결과", value=recognized_text)
     else:
-        st.error("🔴 **음성 인식이 활성화되지 않았습니다.** 🔴\n\n"
-                 "→ **마이크 권한을 허용했는지 확인하세요.**\n"
-                 "→ **Streamlit Cloud에서는 HTTPS 환경에서만 작동합니다.**")
+        st.warning("음성 데이터가 비어 있습니다. 다시 시도해주세요.")
+else:
+    st.error("🔴 **음성 인식이 활성화되지 않았습니다.** 🔴\n\n"
+             "→ **마이크 권한을 허용했는지 확인하세요.**\n"
+             "→ **Streamlit Cloud에서는 HTTPS 환경에서만 작동합니다.**")
             
 # 페이지 전환 함수
 def next_page():
