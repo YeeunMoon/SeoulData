@@ -5,9 +5,11 @@ import os
 import io
 from pdf_generator import create_pdf
 from CV_generator import generate_cv_with_ai  # CV 생성 함수 임포트
-from streamlit_audio_recorder import audio_recorder
-from pydub import AudioSegment
 
+import av
+from streamlit_webrtc import webrtc_streamer, AudioProcessorBase
+import numpy as np
+import queue
 
 # Streamlit 앱 설정
 st.set_page_config(
@@ -78,28 +80,39 @@ questions = [
 #         st.error(f"❌ 음성 인식 서비스 오류: {e}")
 #         return ""
 
-# 음성 녹음 및 변환 함수
-def record_and_recognize_audio():
-    audio_bytes = audio_recorder()  # Streamlit용 오디오 레코더
-    if audio_bytes:
-        # MP3 데이터를 WAV 형식으로 변환
-        audio_data = AudioSegment.from_file(io.BytesIO(audio_bytes), format="mp3")
-        wav_io = io.BytesIO()
-        audio_data.export(wav_io, format="wav")
-        wav_io.seek(0)
+# 음성 처리 클래스
+class AudioProcessor(AudioProcessorBase):
+    def __init__(self):
+        self.q = queue.Queue()
 
-        # 음성 인식
-        recognizer = sr.Recognizer()
-        with sr.AudioFile(wav_io) as source:
-            audio = recognizer.record(source)
-            try:
-                text = recognizer.recognize_google(audio, language='ko-KR')
-                st.success(f"음성 인식 결과: {text}")
-                return text
-            except sr.UnknownValueError:
-                st.error("❌ 음성을 인식하지 못했습니다.")
-            except sr.RequestError:
-                st.error("❌ Google Speech API 요청 오류 발생")
+    def recv(self, frame):
+        audio = np.frombuffer(frame.to_ndarray().tobytes(), dtype=np.int16)
+        self.q.put(audio)
+        return frame
+
+# 음성 인식 처리
+def recognize_speech(audio_data):
+    recognizer = sr.Recognizer()
+    audio_segment = sr.AudioData(audio_data, sample_rate=16000, sample_width=2)
+
+    try:
+        text = recognizer.recognize_google(audio_segment, language='ko-KR')
+        st.success(f"✅ 음성 인식 결과: {text}")
+        return text
+    except sr.UnknownValueError:
+        st.error("❌ 음성을 인식하지 못했습니다.")
+    except sr.RequestError:
+        st.error("❌ 음성 인식 서비스 오류 발생")
+
+# Streamlit UI
+st.title("🎙️ 음성 녹음 및 인식")
+
+audio_processor = webrtc_streamer(key="speech_recognition", audio_processor_factory=AudioProcessor)
+
+if audio_processor:
+    audio_data = b''.join([audio.tobytes() for audio in list(audio_processor.audio_processor.q.queue)])
+    if audio_data:
+        recognize_speech(audio_data)
 
 # Streamlit 앱 시작
 st.title("🎙️ 음성 녹음 및 인식")
