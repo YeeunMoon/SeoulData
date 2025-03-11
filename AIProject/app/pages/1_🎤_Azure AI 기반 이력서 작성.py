@@ -127,7 +127,7 @@ audio_processor = webrtc_streamer(
 
 # 오디오 처리 버튼 추가
 if st.button("🎙️ 음성 입력 시작"):
-    if audio_processor and audio_processor.audio_processor:
+    if audio_processor and audio_processor.state.playing:
         audio_data = b''.join([audio.tobytes() for audio in list(audio_processor.audio_processor.q.queue)])
         if audio_data:
             recognized_text = recognize_speech(audio_data)
@@ -135,7 +135,9 @@ if st.button("🎙️ 음성 입력 시작"):
         else:
             st.warning("음성 데이터가 비어 있습니다. 다시 시도해주세요.")
     else:
-        st.error("음성 인식이 활성화되지 않았습니다. 다시 시도해주세요.")
+        st.error("🔴 **음성 인식이 활성화되지 않았습니다.** 🔴\n\n"
+                 "→ **마이크 권한을 허용했는지 확인하세요.**\n"
+                 "→ **Streamlit Cloud에서는 HTTPS 환경에서만 작동합니다.**")
             
 # 페이지 전환 함수
 def next_page():
