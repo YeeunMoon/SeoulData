@@ -97,15 +97,22 @@ def recognize_speech(audio_data):
 
     try:
         text = recognizer.recognize_google(audio_segment, language='ko-KR')
-        st.success(f"✅ 음성 인식 결과: {text}")
         return text
     except sr.UnknownValueError:
-        st.error("❌ 음성을 인식하지 못했습니다.")
+        return "❌ 음성을 인식하지 못했습니다."
     except sr.RequestError:
-        st.error("❌ 음성 인식 서비스 오류 발생")
+        return "❌ 음성 인식 서비스 오류 발생"
+
+# 텍스트를 음성으로 변환
+def text_to_speech(text, lang="ko"):
+    tts = gTTS(text=text, lang=lang)
+    audio_data = io.BytesIO()
+    tts.write_to_fp(audio_data)
+    audio_data.seek(0)
+    return audio_data
 
 # Streamlit UI
-st.title("🎙️ 음성 녹음 및 인식")
+st.title("🎙️ 음성 입력 및 변환")
 
 # 🎯 비디오 OFF 설정 (화면 제거)
 audio_processor = webrtc_streamer(
@@ -118,11 +125,17 @@ audio_processor = webrtc_streamer(
     }
 )
 
-# 오디오 처리
-if audio_processor and audio_processor.audio_processor:
-    audio_data = b''.join([audio.tobytes() for audio in list(audio_processor.audio_processor.q.queue)])
-    if audio_data:
-        recognize_speech(audio_data)
+# 오디오 처리 버튼 추가
+if st.button("🎙️ 음성 입력 시작"):
+    if audio_processor and audio_processor.audio_processor:
+        audio_data = b''.join([audio.tobytes() for audio in list(audio_processor.audio_processor.q.queue)])
+        if audio_data:
+            recognized_text = recognize_speech(audio_data)
+            st.text_input("음성 인식 결과", value=recognized_text)
+        else:
+            st.warning("음성 데이터가 비어 있습니다. 다시 시도해주세요.")
+    else:
+        st.error("음성 인식이 활성화되지 않았습니다. 다시 시도해주세요.")
             
 # 페이지 전환 함수
 def next_page():
