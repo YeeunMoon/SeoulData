@@ -12,7 +12,7 @@ folium
 #streamlit-webrtc
 SpeechRecognition
 #streamlit_audio_recorder
-pyaudio
+pyaudio==0.2.13
 #folium
 tiktoken
 gTTS==2.2.3
