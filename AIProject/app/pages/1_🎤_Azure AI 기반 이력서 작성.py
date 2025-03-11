@@ -107,16 +107,22 @@ def recognize_speech(audio_data):
 # Streamlit UI
 st.title("🎙️ 음성 녹음 및 인식")
 
-audio_processor = webrtc_streamer(key="speech_recognition", audio_processor_factory=AudioProcessor)
+# 🎯 비디오 OFF 설정 (화면 제거)
+audio_processor = webrtc_streamer(
+    key="speech_recognition",
+    audio_processor_factory=AudioProcessor,
+    video_processor_factory=None,  # 비디오 OFF
+    media_stream_constraints={
+        "video": False,  # 비디오 비활성화
+        "audio": True     # 오디오만 활성화
+    }
+)
 
-if audio_processor:
+# 오디오 처리
+if audio_processor and audio_processor.audio_processor:
     audio_data = b''.join([audio.tobytes() for audio in list(audio_processor.audio_processor.q.queue)])
     if audio_data:
         recognize_speech(audio_data)
-
-# Streamlit 앱 시작
-st.title("🎙️ 음성 녹음 및 인식")
-recognized_text = record_and_recognize_audio()
             
 # 페이지 전환 함수
 def next_page():
