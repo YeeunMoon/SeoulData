@@ -11,7 +11,7 @@ folium
 pydub
 streamlit-webrtc
 SpeechRecognition
-streamlit_audio_recorder
+#streamlit_audio_recorder
 #pyaudio
 #folium
 tiktoken
