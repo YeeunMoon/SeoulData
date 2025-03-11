@@ -1,8 +1,6 @@
 import streamlit as st
 from gtts import gTTS
 import speech_recognition as sr
-import sounddevice as sd
-import soundfile as sf
 import os
 import io
 from pdf_generator import create_pdf
@@ -47,19 +45,19 @@ questions = [
     ("성격", "자신의 성격이나 장점에 대해서 말씀해주세요."),
 ]
 
-# 텍스트를 음성으로 변환
-def text_to_speech(text, lang="ko"):
-    """
-    텍스트를 음성으로 변환하고 메모리에서 직접 처리합니다.
-    :param text: 변환할 텍스트
-    :param lang: 음성 언어 (기본값: 'ko')
-    :return: BytesIO 객체로 반환된 MP3 데이터
-    """
-    tts = gTTS(text=text, lang=lang)
-    audio_data = io.BytesIO()  # 메모리 파일 생성
-    tts.write_to_fp(audio_data)  # MP3 데이터를 메모리 파일에 저장
-    audio_data.seek(0)  # 메모리 파일의 시작 위치로 이동
-    return audio_data
+# # 텍스트를 음성으로 변환
+# def text_to_speech(text, lang="ko"):
+#     """
+#     텍스트를 음성으로 변환하고 메모리에서 직접 처리합니다.
+#     :param text: 변환할 텍스트
+#     :param lang: 음성 언어 (기본값: 'ko')
+#     :return: BytesIO 객체로 반환된 MP3 데이터
+#     """
+#     tts = gTTS(text=text, lang=lang)
+#     audio_data = io.BytesIO()  # 메모리 파일 생성
+#     tts.write_to_fp(audio_data)  # MP3 데이터를 메모리 파일에 저장
+#     audio_data.seek(0)  # 메모리 파일의 시작 위치로 이동
+#     return audio_data
 
 # # 음성 입력 처리
 # def recognize_speech():
@@ -77,38 +75,31 @@ def text_to_speech(text, lang="ko"):
 #         st.error(f"❌ 음성 인식 서비스 오류: {e}")
 #         return ""
 
+# 텍스트를 음성으로 변환
+def text_to_speech(text, lang="ko"):
+    tts = gTTS(text=text, lang=lang)
+    audio_data = io.BytesIO()
+    tts.write_to_fp(audio_data)
+    audio_data.seek(0)
+    return audio_data
+
+# 음성 인식 처리 (Wave 파일 방식으로 수정)
 def recognize_speech():
-    try:
+    recognizer = sr.Recognizer()
+
+    # 오디오 파일 기반 인식
+    with sr.AudioFile("temp_audio.wav") as source:
         print("🎤 음성 입력 중... 말씀하세요!")
-        audio_data = sd.rec(int(5 * 44100), samplerate=44100, channels=1, dtype='int16')
-        sd.wait()
-
-        # 오디오 데이터를 WAV 파일로 저장 (음성 인식 API는 WAV 파일이 필요)
-        with open("temp_audio.wav", "wb") as f:
-            sf.write(f, audio_data, 44100)
-
-        # WAV 파일에서 음성 인식 수행
-        recognizer = sr.Recognizer()
-        with sr.AudioFile("temp_audio.wav") as source:
-            audio = recognizer.record(source)
+        audio = recognizer.record(source)
+        
+        try:
             text = recognizer.recognize_google(audio, language='ko-KR')
-
-        print(f"✅ 음성 인식 결과: {text}")
-        return text
-    except sr.UnknownValueError:
-        print("❌ 음성을 인식하지 못했습니다.")
-        return ""
-    except sr.RequestError:
-        print("❌ Google Speech API 요청 오류 발생")
-        return ""
-
-# 음성 녹음 (파일 저장)
-def save_audio(filename='recorded.wav', duration=5, samplerate=44100):
-    print("🎤 음성 입력 중... 말씀하세요!")
-    audio_data = sd.rec(int(duration * samplerate), samplerate=samplerate, channels=1, dtype='float32')
-    sd.wait()  # 녹음 완료 대기
-    sf.write(filename, audio_data, samplerate)
-    print(f"✅ 녹음 완료: {filename}")
+            print(f"✅ 음성 인식 결과: {text}")
+            return text
+        except sr.UnknownValueError:
+            print("❌ 음성을 인식하지 못했습니다.")
+        except sr.RequestError:
+            print("❌ Google Speech API 요청 오류 발생")
             
 # 페이지 전환 함수
 def next_page():
