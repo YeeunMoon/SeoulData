@@ -8,6 +8,8 @@ fpdf
 reportlab
 pillow
 folium
+sounddevice
+soundfile
 SpeechRecognition
 #pyaudio
 #folium
