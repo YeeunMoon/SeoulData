@@ -8,8 +8,8 @@ fpdf
 reportlab
 pillow
 folium
-sounddevice
-soundfile
+pydub
+streamlit-audio-recorder
 SpeechRecognition
 #pyaudio
 #folium
