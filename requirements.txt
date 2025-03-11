@@ -16,3 +16,4 @@ SpeechRecognition
 #folium
 tiktoken
 gTTS==2.2.3
+soundfile
