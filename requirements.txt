@@ -8,12 +8,12 @@ fpdf
 reportlab
 pillow
 folium
-pydub
-streamlit-webrtc
+#pydub
+#streamlit-webrtc
 SpeechRecognition
 #streamlit_audio_recorder
 #pyaudio
 #folium
 tiktoken
 gTTS==2.2.3
-soundfile
+#soundfile
