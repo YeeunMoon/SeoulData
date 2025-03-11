@@ -4,6 +4,7 @@ weasyprint
 openai
 azure-cognitiveservices-speech
 pdfkit
+fpdf
 reportlab
 pillow
 folium
