@@ -103,29 +103,20 @@ def recognize_speech(audio_data):
     except sr.RequestError:
         return "❌ 음성 인식 서비스 오류 발생"
 
-# 텍스트를 음성으로 변환
-def text_to_speech(text, lang="ko"):
-    tts = gTTS(text=text, lang=lang)
-    audio_data = io.BytesIO()
-    tts.write_to_fp(audio_data)
-    audio_data.seek(0)
-    return audio_data
-
 # Streamlit UI
 st.title("🎙️ 음성 입력 및 변환")
 
-# 🎯 비디오 OFF 설정 (화면 제거)
 audio_processor = webrtc_streamer(
     key="speech_recognition",
     audio_processor_factory=AudioProcessor,
-    video_processor_factory=None,  # 비디오 OFF
+    video_processor_factory=None,
     media_stream_constraints={
         "video": False,  # 비디오 비활성화
         "audio": True     # 오디오만 활성화
     }
 )
 
-# 🔄 음성 데이터 자동 인식 (START 버튼 제거)
+# 🔄 음성 데이터 자동 인식
 if audio_processor and audio_processor.state.playing:
     audio_data = b''.join([audio.tobytes() for audio in list(audio_processor.audio_processor.q.queue)])
     if audio_data:
