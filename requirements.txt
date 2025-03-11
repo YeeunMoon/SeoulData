@@ -9,9 +9,10 @@ reportlab
 pillow
 folium
 pydub
-streamlit-audio-recorder
 SpeechRecognition
 #pyaudio
 #folium
 tiktoken
 gTTS==2.2.3
+
+git+https://github.com/stefanrmmr/streamlit_audio_recorder.git
