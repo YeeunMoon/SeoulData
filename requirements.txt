@@ -8,8 +8,6 @@ reportlab
 pillow
 folium
 SpeechRecognition
-sounddevice
-
 #pyaudio
 #folium
 tiktoken
