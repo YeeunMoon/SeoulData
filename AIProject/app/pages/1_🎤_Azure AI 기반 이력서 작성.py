@@ -1,10 +1,13 @@
 import streamlit as st
 from gtts import gTTS
 import speech_recognition as sr
+import sounddevice as sd
+import soundfile as sf
 import os
 import io
 from pdf_generator import create_pdf
 from CV_generator import generate_cv_with_ai  # CV 생성 함수 임포트
+
 # Streamlit 앱 설정
 st.set_page_config(
     page_title="Azure AI 기반 이력서 작성",
@@ -58,22 +61,55 @@ def text_to_speech(text, lang="ko"):
     audio_data.seek(0)  # 메모리 파일의 시작 위치로 이동
     return audio_data
 
-# 음성 입력 처리
+# # 음성 입력 처리
+# def recognize_speech():
+#     recognizer = sr.Recognizer()
+#     try:
+#         with sr.Microphone() as source:
+#             st.write("음성 입력 중... 말씀해주세요!")
+#             audio = recognizer.listen(source, timeout=5)
+#             text = recognizer.recognize_google(audio, language="ko-KR")
+#             return text
+#     except sr.UnknownValueError:
+#         st.error("❌ 음성을 인식하지 못했습니다. 다시 시도해주세요.")
+#         return ""
+#     except sr.RequestError as e:
+#         st.error(f"❌ 음성 인식 서비스 오류: {e}")
+#         return ""
+
 def recognize_speech():
-    recognizer = sr.Recognizer()
     try:
-        with sr.Microphone() as source:
-            st.write("음성 입력 중... 말씀해주세요!")
-            audio = recognizer.listen(source, timeout=5)
-            text = recognizer.recognize_google(audio, language="ko-KR")
-            return text
+        print("🎤 음성 입력 중... 말씀하세요!")
+        audio_data = sd.rec(int(5 * 44100), samplerate=44100, channels=1, dtype='int16')
+        sd.wait()
+
+        # 오디오 데이터를 WAV 파일로 저장 (음성 인식 API는 WAV 파일이 필요)
+        with open("temp_audio.wav", "wb") as f:
+            sf.write(f, audio_data, 44100)
+
+        # WAV 파일에서 음성 인식 수행
+        recognizer = sr.Recognizer()
+        with sr.AudioFile("temp_audio.wav") as source:
+            audio = recognizer.record(source)
+            text = recognizer.recognize_google(audio, language='ko-KR')
+
+        print(f"✅ 음성 인식 결과: {text}")
+        return text
     except sr.UnknownValueError:
-        st.error("❌ 음성을 인식하지 못했습니다. 다시 시도해주세요.")
+        print("❌ 음성을 인식하지 못했습니다.")
         return ""
-    except sr.RequestError as e:
-        st.error(f"❌ 음성 인식 서비스 오류: {e}")
+    except sr.RequestError:
+        print("❌ Google Speech API 요청 오류 발생")
         return ""
 
+# 음성 녹음 (파일 저장)
+def save_audio(filename='recorded.wav', duration=5, samplerate=44100):
+    print("🎤 음성 입력 중... 말씀하세요!")
+    audio_data = sd.rec(int(duration * samplerate), samplerate=samplerate, channels=1, dtype='float32')
+    sd.wait()  # 녹음 완료 대기
+    sf.write(filename, audio_data, samplerate)
+    print(f"✅ 녹음 완료: {filename}")
+            
 # 페이지 전환 함수
 def next_page():
     st.session_state.page += 1
