@@ -8,6 +8,7 @@ from CV_generator import generate_cv_with_ai  # CV 생성 함수 임포트
 
 import av
 from streamlit_webrtc import webrtc_streamer, AudioProcessorBase
+import soundfile as sf
 import numpy as np
 import queue
 
@@ -80,24 +81,13 @@ questions = [
 #         st.error(f"❌ 음성 인식 서비스 오류: {e}")
 #         return ""
 
-# 🎯 음성 인식 클래스 (비디오 OFF)
-class AudioProcessor(AudioProcessorBase):
-    def __init__(self):
-        self.q = queue.Queue()
 
-    def recv(self, frame):
-        audio = np.frombuffer(frame.to_ndarray().tobytes(), dtype=np.int16)
-        self.q.put(audio)
-        return frame
-
-# 음성 인식 처리
-def recognize_speech(audio_data):
+def recognize_speech(file_path):
     recognizer = sr.Recognizer()
-    audio_segment = sr.AudioData(audio_data, sample_rate=16000, sample_width=2)
-
+    with sr.AudioFile(file_path) as source:
+        audio = recognizer.record(source)
     try:
-        text = recognizer.recognize_google(audio_segment, language='ko-KR')
-        return text
+        return recognizer.recognize_google(audio, language="ko-KR")
     except sr.UnknownValueError:
         return "❌ 음성을 인식하지 못했습니다."
     except sr.RequestError:
@@ -106,28 +96,18 @@ def recognize_speech(audio_data):
 # Streamlit UI
 st.title("🎙️ 음성 입력 및 변환")
 
-audio_processor = webrtc_streamer(
-    key="speech_recognition",
-    audio_processor_factory=AudioProcessor,
-    video_processor_factory=None,
-    media_stream_constraints={
-        "video": False,  # 비디오 비활성화
-        "audio": True     # 오디오만 활성화
-    }
-)
+# 🔹 오디오 녹음
+audio_bytes = st.audio_recorder("음성 녹음", format="audio/wav")
 
-# 🔄 음성 데이터 자동 인식
-if audio_processor and audio_processor.state.playing:
-    audio_data = b''.join([audio.tobytes() for audio in list(audio_processor.audio_processor.q.queue)])
-    if audio_data:
-        recognized_text = recognize_speech(audio_data)
-        st.text_input("음성 인식 결과", value=recognized_text)
-    else:
-        st.warning("음성 데이터가 비어 있습니다. 다시 시도해주세요.")
-else:
-    st.error("🔴 **음성 인식이 활성화되지 않았습니다.** 🔴\n\n"
-             "→ **마이크 권한을 허용했는지 확인하세요.**\n"
-             "→ **Streamlit Cloud에서는 HTTPS 환경에서만 작동합니다.**")
+# 🔹 음성 인식 처리
+if audio_bytes:
+    file_path = "temp_audio.wav"
+    with open(file_path, "wb") as f:
+        f.write(audio_bytes)
+
+    recognized_text = recognize_speech(file_path)
+    st.text_input("음성 인식 결과", value=recognized_text)
+    
             
 # 페이지 전환 함수
 def next_page():
