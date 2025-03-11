@@ -191,15 +191,15 @@ def question_page():
         key=unique_key,  # 고유한 키 사용
     )
 
-    # 음성 입력 버튼
-    col1, col2, col3 = st.columns([5, 4, 1])  # 버튼을 가운데 배치
-    with col2:
-        # Streamlit 기본 버튼을 사용
-        if st.button("🎙️", key=f"audio_{current_index}"):
-            recognized_text = recognize_speech()  # 음성 입력 수행
-            if recognized_text:
-                st.session_state.user_data[key] = recognized_text
-                st.success("음성이 성공적으로 변환되었습니다!")
+    # # 음성 입력 버튼
+    # col1, col2, col3 = st.columns([5, 4, 1])  # 버튼을 가운데 배치
+    # with col2:
+    #     # Streamlit 기본 버튼을 사용
+    #     if st.button("🎙️", key=f"audio_{current_index}"):
+    #         recognized_text = recognize_speech()  # 음성 입력 수행
+    #         if recognized_text:
+    #             st.session_state.user_data[key] = recognized_text
+    #             st.success("음성이 성공적으로 변환되었습니다!")
 
 
     # 여백 추가
