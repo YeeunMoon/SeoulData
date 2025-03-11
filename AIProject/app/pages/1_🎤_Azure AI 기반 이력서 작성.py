@@ -7,7 +7,6 @@ from pdf_generator import create_pdf
 from CV_generator import generate_cv_with_ai  # CV 생성 함수 임포트
 
 import av
-from streamlit_audio_recorder import audio_recorder
 from streamlit_webrtc import webrtc_streamer, AudioProcessorBase
 import soundfile as sf
 import numpy as np
