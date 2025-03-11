@@ -51,19 +51,19 @@ questions = [
     ("성격", "자신의 성격이나 장점에 대해서 말씀해주세요."),
 ]
 
-# # 텍스트를 음성으로 변환
-# def text_to_speech(text, lang="ko"):
-#     """
-#     텍스트를 음성으로 변환하고 메모리에서 직접 처리합니다.
-#     :param text: 변환할 텍스트
-#     :param lang: 음성 언어 (기본값: 'ko')
-#     :return: BytesIO 객체로 반환된 MP3 데이터
-#     """
-#     tts = gTTS(text=text, lang=lang)
-#     audio_data = io.BytesIO()  # 메모리 파일 생성
-#     tts.write_to_fp(audio_data)  # MP3 데이터를 메모리 파일에 저장
-#     audio_data.seek(0)  # 메모리 파일의 시작 위치로 이동
-#     return audio_data
+# 텍스트를 음성으로 변환
+def text_to_speech(text, lang="ko"):
+    """
+    텍스트를 음성으로 변환하고 메모리에서 직접 처리합니다.
+    :param text: 변환할 텍스트
+    :param lang: 음성 언어 (기본값: 'ko')
+    :return: BytesIO 객체로 반환된 MP3 데이터
+    """
+    tts = gTTS(text=text, lang=lang)
+    audio_data = io.BytesIO()  # 메모리 파일 생성
+    tts.write_to_fp(audio_data)  # MP3 데이터를 메모리 파일에 저장
+    audio_data.seek(0)  # 메모리 파일의 시작 위치로 이동
+    return audio_data
 
 # # 음성 입력 처리
 # def recognize_speech():
