@@ -5,6 +5,8 @@ import os
 import io
 from pdf_generator import create_pdf
 from CV_generator import generate_cv_with_ai  # CV 생성 함수 임포트
+import sounddevice as sd
+import soundfile as sf
 
 # Streamlit 앱 설정
 st.set_page_config(
@@ -82,14 +84,28 @@ def text_to_speech(text, lang="ko"):
     tts.write_to_fp(audio_data)
     audio_data.seek(0)
     return audio_data
-
+    
+def save_audio(filename='temp_audio.wav', duration=5, samplerate=44100):
+    print("🎤 음성 입력 중... 말씀하세요!")
+    audio_data = sd.rec(int(duration * samplerate), samplerate=samplerate, channels=1, dtype='float32')
+    sd.wait()  # 녹음 완료 대기
+    sf.write(filename, audio_data, samplerate)  # WAV 파일 저장
+    print(f"✅ 녹음 완료: {filename}")
+    
 # 음성 인식 처리 (Wave 파일 방식으로 수정)
 def recognize_speech():
     recognizer = sr.Recognizer()
 
-    # 오디오 파일 기반 인식
+    # 오디오 녹음 후 저장
+    save_audio("temp_audio.wav")
+
+    # 파일 존재 여부 확인
+    if not os.path.exists("temp_audio.wav"):
+        raise FileNotFoundError("❌ 'temp_audio.wav' 파일이 생성되지 않았습니다.")
+
+    # 음성 인식 진행
     with sr.AudioFile("temp_audio.wav") as source:
-        print("🎤 음성 입력 중... 말씀하세요!")
+        print("🔊 음성 인식 중...")
         audio = recognizer.record(source)
         
         try:
