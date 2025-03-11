@@ -8,7 +8,7 @@ reportlab
 pillow
 folium
 SpeechRecognition
-pyaudio 
-folium
+#pyaudio
+#folium
 tiktoken
 gTTS==2.2.3
