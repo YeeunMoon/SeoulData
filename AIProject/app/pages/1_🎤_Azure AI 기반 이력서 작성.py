@@ -5,8 +5,9 @@ import os
 import io
 from pdf_generator import create_pdf
 from CV_generator import generate_cv_with_ai  # CV 생성 함수 임포트
-import sounddevice as sd
-import soundfile as sf
+from streamlit_audio_recorder import audio_recorder
+from pydub import AudioSegment
+
 
 # Streamlit 앱 설정
 st.set_page_config(
@@ -77,45 +78,32 @@ questions = [
 #         st.error(f"❌ 음성 인식 서비스 오류: {e}")
 #         return ""
 
-# 텍스트를 음성으로 변환
-def text_to_speech(text, lang="ko"):
-    tts = gTTS(text=text, lang=lang)
-    audio_data = io.BytesIO()
-    tts.write_to_fp(audio_data)
-    audio_data.seek(0)
-    return audio_data
-    
-def save_audio(filename='temp_audio.wav', duration=5, samplerate=44100):
-    print("🎤 음성 입력 중... 말씀하세요!")
-    audio_data = sd.rec(int(duration * samplerate), samplerate=samplerate, channels=1, dtype='float32')
-    sd.wait()  # 녹음 완료 대기
-    sf.write(filename, audio_data, samplerate)  # WAV 파일 저장
-    print(f"✅ 녹음 완료: {filename}")
-    
-# 음성 인식 처리 (Wave 파일 방식으로 수정)
-def recognize_speech():
-    recognizer = sr.Recognizer()
+# 음성 녹음 및 변환 함수
+def record_and_recognize_audio():
+    audio_bytes = audio_recorder()  # Streamlit용 오디오 레코더
+    if audio_bytes:
+        # MP3 데이터를 WAV 형식으로 변환
+        audio_data = AudioSegment.from_file(io.BytesIO(audio_bytes), format="mp3")
+        wav_io = io.BytesIO()
+        audio_data.export(wav_io, format="wav")
+        wav_io.seek(0)
 
-    # 오디오 녹음 후 저장
-    save_audio("temp_audio.wav")
+        # 음성 인식
+        recognizer = sr.Recognizer()
+        with sr.AudioFile(wav_io) as source:
+            audio = recognizer.record(source)
+            try:
+                text = recognizer.recognize_google(audio, language='ko-KR')
+                st.success(f"음성 인식 결과: {text}")
+                return text
+            except sr.UnknownValueError:
+                st.error("❌ 음성을 인식하지 못했습니다.")
+            except sr.RequestError:
+                st.error("❌ Google Speech API 요청 오류 발생")
 
-    # 파일 존재 여부 확인
-    if not os.path.exists("temp_audio.wav"):
-        raise FileNotFoundError("❌ 'temp_audio.wav' 파일이 생성되지 않았습니다.")
-
-    # 음성 인식 진행
-    with sr.AudioFile("temp_audio.wav") as source:
-        print("🔊 음성 인식 중...")
-        audio = recognizer.record(source)
-        
-        try:
-            text = recognizer.recognize_google(audio, language='ko-KR')
-            print(f"✅ 음성 인식 결과: {text}")
-            return text
-        except sr.UnknownValueError:
-            print("❌ 음성을 인식하지 못했습니다.")
-        except sr.RequestError:
-            print("❌ Google Speech API 요청 오류 발생")
+# Streamlit 앱 시작
+st.title("🎙️ 음성 녹음 및 인식")
+recognized_text = record_and_recognize_audio()
             
 # 페이지 전환 함수
 def next_page():
